@@ -1,0 +1,26 @@
+{
+    "1":{
+        "minute":1,
+        "second":20,
+        "Tw":1,
+        "Tc":100
+    },
+    "2":{
+        "width1_us_0":5,
+        "width1_us_1":1,
+        "width1_us_2":5,
+        "width2_us_0":5,
+        "width2_us_1":2,
+        "width2_us_2":3,
+        "phase_us_0":2,
+        "phase_us_1":2,
+        "phase_us_2":3,
+        "frequency_0":2000,
+        "frequency_1":10000,
+        "frequency_2":10000,
+        "D1":5,
+        "D2":3,
+        "phase2":3,
+        "M":20
+    }
+}

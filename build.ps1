@@ -1,0 +1,1 @@
+pyinstaller -D -w main.py   --distpath='D:/Desktop/dist/'
