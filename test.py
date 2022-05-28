@@ -1,12 +1,7 @@
-import os
-import serial.tools.list_ports
-
-port_list = list(serial.tools.list_ports.comports())
-# print(port_list)#if there is no serial ports,here wil show '[]'. array mode
-if len(port_list) == 0:
-   print('No serial ports.')
-else:
-    for i in range(0,len(port_list)):
-        print(port_list[i])
-
-os.system("pause")
+import  numpy as np
+from  scipy.signal import sawtooth
+import matplotlib.pyplot as plt
+x = range(0,100)
+y = [-3210, -3225, -3225, -3219, -3231, -3213, -3228, -3222, -3225, -3186, -3225, -3213, -3216, -3210, -3219, -3222, -3219, -3219, -3216, -3231, -3234, -3219, -3213, -3216, -3216, -3222, -3222, -3222, -3222, -3222, -3216, -3213, -3219, -3222, -3222, -3216, -3207, -3219, -3219, -3219, -3219, -3210, -3222, -3228, -3219, -3210, -3210, -3219, -3216, -3210, -3216, 2709, 2706, 2703, 2703, 2703, 2694, 2703, 2697, 2733, 2694, 2700, 2685, 2700, 2703, 2691, 2691, 2697, 2700, 2694, 2688, 2691, 2685, 2700, 2688, 2688, 2709, 2700, 2688, 2700, 2688, 2703, 2685, 2688, 2697, 2691, 2688, 2694, 2652, 2694, 2685, 2682, 2691, 2688, 2616, 2694, 2685, 2679, 2688, 2694]
+plt.plot(x,y)
+plt.show()

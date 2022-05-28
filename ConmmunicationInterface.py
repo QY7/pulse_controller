@@ -13,6 +13,7 @@ class CommunicationInterface:
             'second':[0x00,0x02],
             'Tw':[0x00,0x07],
             'Tc':[0x00,0x15],
+            "voltage_max":[0x00,0x26],
             'width1_us_0':[0x01,0x4],
             'width1_us_1':[0x01,0x7],
             'width1_us_2':[0x01,0x3B],
@@ -35,7 +36,7 @@ class CommunicationInterface:
             'external':[0x00,0x7B],
             'preset0':[0x01,0x7C],
             'preset1':[0x01,0x7D],
-            'preset2':[0x01,0x7E],
+            'preset2':[0x01,0x7E]
         }
 
 
@@ -75,6 +76,8 @@ class CommunicationInterface:
         # 转换数据的格式，生成数据帧
         format_result = bytes()
         format_result += bytes([0xEE,0xB1,0x11])
+        if(name=='voltage_max'):
+            value*=1000
         try:
             format_result += bytes([0x00,self.id_mapping[name][0]])
             format_result += bytes([0x00,self.id_mapping[name][1],0x11])

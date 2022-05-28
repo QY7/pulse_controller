@@ -22,8 +22,10 @@ import serial
 import pyqtgraph as pg
 from random import randint
 from custom_setting import  *
+import numpy as np
 
 import logging
+import matplotlib.pyplot as plt
 logging.basicConfig(level=logging.DEBUG,#控制台打印的日志级别
                     filename='new.log',
                     filemode='a',##模式，有w和a，w就是写模式，每次都会重新写日志，覆盖之前的日志
@@ -51,8 +53,9 @@ class Controller_ui(QtWidgets.QMainWindow):
         self.timer1 = QtCore.QTimer(self)
         self.timer1.timeout.connect(self.update_time)
 
+        # pg.setMouseEnabled(x=False,y=False)
         self.graphWidget = pg.PlotWidget()
-        self.ui.verticalLayout.addWidget(self.graphWidget)
+        self.ui.verticalLayout_3.addWidget(self.graphWidget)
         # self.setCentralWidget(self.ui.graphWidget)
 
         # self.x = list(range(100))  # 100 time points
@@ -61,13 +64,17 @@ class Controller_ui(QtWidgets.QMainWindow):
         pen = pg.mkPen(color=(255, 0, 0),width=2)
         # self.graphWidget.setXRange(0,100)
         self.graphWidget.setYRange(-5000,5000)
-        self.data_line =  self.graphWidget.plot(data_index, data_received, pen=pen)
-
-        self.timer = QtCore.QTimer()
-        self.timer.setInterval(50)
-        self.timer.timeout.connect(self.update_plot_data)
-        logging.info('Timer start!')
-        self.timer.start()
+        self.data_line =  self.graphWidget.plot(range(0,100), data_received[:100], pen=pen)
+        self.graphWidget.setMouseEnabled(x=False,y=False)
+        # data_arr = [-3222, -3222, -3222, -3225, -3219, -3228, -3225, -3219, -3213, -3225, -3222, -3213, -3225, -3231, -3231, -3225, -3222, -3225, -3234, -3225, -3225, -3228, -3222, -3231, -3225, -3225, -3225, -3225, -3222, -3225, -3222, -3216, -3216, -3222, -3237, -3219, -3210, -3231, -3222, -3228, -3210, -3219, -3231, -3216, -3219, -3219, -3231, -3225, -3219, -3222, 2697, 2694, 2700, 2697, 2688, 2685, 2694, 2700, 2688, 2688, 2682, 2685, 2694, 2685, 2691, 2685, 2673, 2688, 2682, 2685, 2685, 2676, 2679, 2682, 2676, 2685, 2685, 2694, 2673, 2676, 2685, 2676, 2691, 2685, 2679, 2688, 2679, 2679, 2685, 2679, 2682, 2679, 2676, 2688, 2682, 2682, 2673, 2688, 2685, 2673]
+        # self.update_plot_data(50,data_arr)
+        # self.update_plot_data(500,data_received)
+        # self.timer = QtCore.QTimer()
+        # self.timer.setInterval(50)
+        # self.timer.timeout.connect(self.update_plot_data)
+        # logging.info('Timer start!')
+        # self.timer.start()
+        # self.display_data = [0]*100
         # self.playlist = QMediaPlaylist()
         # self.player = QMediaPlayer()
         # self.player.setVideoOutput(self.ui.player_w)                 # 视频播放输出的widget，就是上面定义的
@@ -78,10 +85,37 @@ class Controller_ui(QtWidgets.QMainWindow):
         # self.player.play()
         # self.ui.player_w.show()
         logging.info('Turnning on UI')
+        self.setDisabled(True)
         self.show()
-    def update_plot_data(self):
+        # QMessageBox.question(self,"输入密码")
+        while(True):
+            if(os.path.exists('./password.txt')):
+                with open('./password.txt','r')as f:
+                    passwd = f.readlines()[0]
+            else:
+                logging.error('No password config file')
+                return
+            text,ok = QtWidgets.QInputDialog().getText(QtWidgets.QWidget(),"Password","请输入密码")
+            if(ok):
+                if(text == passwd):
+                    logging.info('Password checked')
+                    self.setDisabled(False)
+                    # sub_menu.show()
+                    break
+                else:
+                    QtWidgets.QMessageBox.warning(self,"Error","密码错误")
+            else:
+                break
+
+    def update_plot_data(self,index,data_arr):
         logging.info('Update data in the graph')
-        self.data_line.setData(data_index, data_received)  # Update the data.
+        display_data = []
+        # if(index>DATA_BUFFER_SIZE-WINDOW_SIZE/2):
+        #     return
+        # display_data = data_received[int(index-WINDOW_SIZE/2):int(index+WINDOW_SIZE/2)]
+        for i in range(index-int(WINDOW_SIZE/2),index+int(WINDOW_SIZE/2),1):
+            display_data.append(int(data_arr[(i+DATA_BUFFER_SIZE)%DATA_BUFFER_SIZE]))
+        self.data_line.setData(range(0,WINDOW_SIZE), display_data)  # Update the data.
 
     def update_time(self):
         if(self.total_second is not 0):
@@ -196,6 +230,7 @@ class Controller_ui(QtWidgets.QMainWindow):
             print("[ERROR] Port has been closed")
 
     def connect_serial(self):
+        print(1)
         try:
             com.start_com()
             self.ui.connect_info.setText("已连接")
@@ -267,12 +302,12 @@ def change_ui_to_pulse_source(name):
         ui.external.click()
     logging.debug('into change_ui_to_pulse_source')
 
-
 def get_data_from_serial():
     global data_received
-    global data_index
-    stop_flag = 0
-    cnt = 0
+    data_index = 0
+    wait_cnt = 0
+    wait_flag = 0
+    global mid
     while(True):
         try:
             time.sleep(0.00001)
@@ -285,35 +320,61 @@ def get_data_from_serial():
                 # com.ser.flushInput()
                 for i in range(len(datas)-7):
                     if(datas[i] == 0x3a and datas[i+1]==0xbf and datas[i+2]==0x33):
-                        # print(datas[i:])
+                        # 接受到数据
                         voltage_recv = (int(datas[i+3:i+7])-SAMPLE_BIAS)*SAMPLE_GAIN
                         print(voltage_recv)
-                        if(voltage_recv>TRIG_LEVEL):
-                            cnt +=1
-                            if(cnt==TRIG_HOLD_CNT):
-                                stop_flag = 1
-                        if(stop_flag == 1):
-                            continue
-                        data_received = data_received[1:]
-                        data_received.append(voltage_recv)
-                        # print(int(datas[i+1:i+5]))
-                        data_index = data_index[1:]  # Remove the first y element.
-                        data_index.append(data_index[-1] + 1)  # Add a new value 1 higher than the last.
+                        # 设置Index处的数据为接收到的数据
+                        data_received[(data_index)] = voltage_recv
+                        if(data_received[data_index-1]<TRIG_LEVEL and data_received[(data_index)%DATA_BUFFER_SIZE]>TRIG_LEVEL):
+                            # 触发到上升沿，刷新曲线
+                            wait_flag = 1
+                        data_index+=1
+                        # if(data_index==DATA_BUFFER_SIZE):
+                        #     ui.update_plot_data(500,data_received)
+                        data_index %= DATA_BUFFER_SIZE
+                        if(wait_flag):
+                            wait_cnt+=1
+                            if(wait_cnt == int(WINDOW_SIZE/2)):
+                                ui.update_plot_data((data_index+DATA_BUFFER_SIZE-wait_cnt)%DATA_BUFFER_SIZE,data_received)
+                                wait_cnt = 0
+                                wait_flag = 0
                         # data_hex = ['0x%x'%i for i in data_received]
                 
                     # print(f"received {','.join(data_hex)}")
                     # print(data_received[-1])
         except serial.serialutil.SerialException:
             continue
-        except:
-            continue
 
-local_index = 0
-local_pulse_source = 0
+# from  scipy.signal import sawtooth
+# def get_data_from_serial():
+#     global data_received
+#     data_index = 0
+#     global mid
+#     t = np.linspace(0,20e-3,1000)
+#     data_received = ((sawtooth(2*np.pi*200*t)-0.8)+np.sin(t*50)*0.1)*2e4
+#     data_received[data_received<0] = 0
+#     data_index = 0
+#     while(True):
+#         # time.sleep(0.0001)
+#         print(data_index)
+#         if(data_received[data_index]<TRIG_LEVEL and data_received[(data_index+1)%DATA_BUFFER_SIZE]>TRIG_LEVEL):
+#             # 触发到上升沿，刷新曲线
+#             ui.update_plot_data(data_index)
+#             # 由于data_index+50的范围内数据已经显示了，所以直接跳过
+#             data_index +=50
+#         else:
+#             data_index+=1
+#         data_index = data_index%DATA_BUFFER_SIZE
 
+
+DATA_BUFFER_SIZE =10000
+WINDOW_SIZE  = 500
 if __name__ == '__main__':
-    data_received = [0]*1000
-    data_index = list(range(1000))  # 100 time points
+    local_index = 0
+    local_pulse_source = 0
+    
+    data_received = [0]*DATA_BUFFER_SIZE
+
     # 创建ap
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
