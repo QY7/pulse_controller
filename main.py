@@ -344,6 +344,8 @@ def get_data_from_serial():
                     # print(data_received[-1])
         except serial.serialutil.SerialException:
             continue
+        except ValueError:
+            continue
 
 # from  scipy.signal import sawtooth
 # def get_data_from_serial():

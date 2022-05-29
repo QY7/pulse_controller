@@ -76,9 +76,6 @@ class CommunicationInterface:
         # 转换数据的格式，生成数据帧
         format_result = bytes()
         format_result += bytes([0xEE,0xB1,0x11])
-        if(name=='voltage_max'):
-            # 加上直流偏置，然后乘以1000
-            value*=1000+5000
         try:
             format_result += bytes([0x00,self.id_mapping[name][0]])
             format_result += bytes([0x00,self.id_mapping[name][1],0x11])

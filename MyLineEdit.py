@@ -21,7 +21,6 @@ class MyLineEdit(QtWidgets.QLineEdit):
         self.setGraphicsEffect(None)
         try:
             num_modified = int(self.text())
-            assert(num_modified>=0)
             # com.local_configuration[self.objectName()] = num_modified
             com.send_data(self.objectName(), num_modified)
              
