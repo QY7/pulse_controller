@@ -2,6 +2,7 @@ from re import sub
 from tracemalloc import stop
 import PyQt5
 from PyQt5.QtGui import QColor, QPalette, qRed
+from PyQt5.QtWidgets import QMainWindow, QApplication, QGridLayout
 from sqlalchemy import except_all
 from ui import Ui_MainWindow
 from ui_sub import Ui_Form
@@ -23,6 +24,8 @@ import pyqtgraph as pg
 from random import randint
 from custom_setting import  *
 import numpy as np
+from figure_canvas import Figure_Canvas
+from PyQt5.QtCore import QTimer
 
 import logging
 import matplotlib.pyplot as plt
@@ -34,15 +37,11 @@ logging.basicConfig(level=logging.DEBUG,#控制台打印的日志级别
                     '%(asctime)s - %(pathname)s[line:%(lineno)d] - %(levelname)s: %(message)s'
                     #日志格式
                     )
-# logging.debug('debug 信息')
-# logging.info('info 信息')
-# logging.warning('warning 信息')
-# logging.error('error 信息')
-# logging.critical('critial 信息')
 
 pg.setConfigOptions(foreground=QColor(0,0,0),antialias=True)
 pg.setConfigOptions(background=QColor(255,255,255),antialias=True)
 
+debug_mode = True
 class Controller_ui(QtWidgets.QMainWindow):
     def __init__(self,parent = None):
         super(Controller_ui,self).__init__(parent)
@@ -51,65 +50,58 @@ class Controller_ui(QtWidgets.QMainWindow):
         self.timer1 = QtCore.QTimer(self)
         self.timer1.timeout.connect(self.update_time)
 
-        # pg.setMouseEnabled(x=False,y=False)
-        self.graphWidget = pg.PlotWidget()
-        self.ui.verticalLayout_3.addWidget(self.graphWidget)
-        # self.setCentralWidget(self.ui.graphWidget)
+        # 创建用于显示波形的Box
+        self.groupBox = QtWidgets.QGroupBox(self)
+        self.ui.verticalLayout_3.addWidget(self.groupBox)
+        # self.groupBox.setGeometry(QtCore.QRect(100, 200, 800, 300))
+        self.load_line()  # 加载动态曲线
+        # 创建定时器，使曲线图动态更新
+        self.timer = QTimer()
+        # 每100ms刷新一次
+        self.timer.start(10)
+        self.timer.timeout.connect(self.Updatedata)
 
-        # self.x = list(range(100))  # 100 time points
-        # self.y = [randint(0,100) for _ in range(100)]  # 100 data points
-
-        pen = pg.mkPen(color=(255, 0, 0),width=2)
-        # self.graphWidget.setXRange(0,100)
-        self.graphWidget.setYRange(-5000,5000)
-        self.data_line =  self.graphWidget.plot(range(0,100), data_received[:100], pen=pen)
-        self.graphWidget.setMouseEnabled(x=False,y=False)
-        # data_arr = [-3222, -3222, -3222, -3225, -3219, -3228, -3225, -3219, -3213, -3225, -3222, -3213, -3225, -3231, -3231, -3225, -3222, -3225, -3234, -3225, -3225, -3228, -3222, -3231, -3225, -3225, -3225, -3225, -3222, -3225, -3222, -3216, -3216, -3222, -3237, -3219, -3210, -3231, -3222, -3228, -3210, -3219, -3231, -3216, -3219, -3219, -3231, -3225, -3219, -3222, 2697, 2694, 2700, 2697, 2688, 2685, 2694, 2700, 2688, 2688, 2682, 2685, 2694, 2685, 2691, 2685, 2673, 2688, 2682, 2685, 2685, 2676, 2679, 2682, 2676, 2685, 2685, 2694, 2673, 2676, 2685, 2676, 2691, 2685, 2679, 2688, 2679, 2679, 2685, 2679, 2682, 2679, 2676, 2688, 2682, 2682, 2673, 2688, 2685, 2673]
-        # self.update_plot_data(50,data_arr)
-        # self.update_plot_data(500,data_received)
-        # self.timer = QtCore.QTimer()
-        # self.timer.setInterval(50)
-        # self.timer.timeout.connect(self.update_plot_data)
-        # logging.info('Timer start!')
-        # self.timer.start()
-        # self.display_data = [0]*100
-        # self.playlist = QMediaPlaylist()
-        # self.player = QMediaPlayer()
-        # self.player.setVideoOutput(self.ui.player_w)                 # 视频播放输出的widget，就是上面定义的
-        # url = QtCore.QUrl.fromLocalFile('D:\\Documents\\KeyShot 7\\Animations\\Drone_control.30\\Drone_control.30.mp4')
-        # self.playlist.addMedia(QMediaContent(url))
-        # self.playlist.setPlaybackMode(QMediaPlaylist.Loop)
-        # self.player.setPlaylist(self.playlist)
-        # self.player.play()
-        # self.ui.player_w.show()
-        logging.info('Turnning on UI')
         self.setDisabled(True)
         self.show()
-        # QMessageBox.question(self,"输入密码")
-        while(True):
-            if(os.path.exists('./password.txt')):
-                with open('./password.txt','r')as f:
-                    passwd = f.readlines()[0]
-            else:
-                logging.error('No password config file')
-                return
-            text,ok = QtWidgets.QInputDialog().getText(QtWidgets.QWidget(),"Password","请输入密码")
-            if(ok):
-                if(text == passwd):
-                    logging.info('Password checked')
-                    self.setDisabled(False)
-                    # sub_menu.show()
-                    break
+        # QMessageBox.question(self,"输入密码")\
+        if(not debug_mode):
+            while(True):
+                if(os.path.exists('./password.txt')):
+                    with open('./password.txt','r')as f:
+                        passwd = f.readlines()[0]
                 else:
-                    QtWidgets.QMessageBox.warning(self,"Error","密码错误")
-            else:
-                break
+                    logging.error('No password config file')
+                    return
+                text,ok = QtWidgets.QInputDialog().getText(QtWidgets.QWidget(),"Password","请输入密码")
+                if(ok):
+                    if(text == passwd):
+                        logging.info('Password checked')
+                        self.setDisabled(False)
+                        # sub_menu.show()
+                        break
+                    else:
+                        QtWidgets.QMessageBox.warning(self,"Error","密码错误")
+                else:
+                    break
+        else:
+            self.setDisabled(False)
+    def load_line(self):
+        global display_data_buffer
+        self.LineFigure = Figure_Canvas()
+        self.LineFigureLayout = QGridLayout(self.groupBox)
+        self.LineFigureLayout.addWidget(self.LineFigure)
 
-    def update_plot_data(self,data_arr):
-        global frame_cnt
-        # print('Update data in the graph'+str(frame_cnt))
-        frame_cnt+=1
-        self.data_line.setData(range(0,WINDOW_SIZE), data_arr)  # Update the data.
+        # 准备数据，绘制曲线
+        x_data = np.arange(0, WINDOW_SIZE, 1)
+        self.LineFigure.add_line(x_data, np.array(display_data_buffer))
+
+    def Updatedata(self):
+        global display_data_buffer
+        self.LineFigure.line.set_ydata(np.array(display_data_buffer))  # Update the data.
+        # self.LineFigure.line.set_ydata(z_data)  # 更新数据
+        # self.LineFigure.line2.set_ydata(h_data)
+
+        self.LineFigure.draw()  # 重新画图
 
     def update_time(self):
         if(self.total_second is not 0):
@@ -296,16 +288,6 @@ def change_ui_to_pulse_source(name):
         ui.external.click()
     logging.debug('into change_ui_to_pulse_source')
 
-
-refresh_flag = 0
-def update_plot():
-    global display_data_buffer,refresh_flag
-    while(True):
-        time.sleep(0.1)
-        if(refresh_flag):
-            refresh_flag = 0
-            ui.update_plot_data(display_data_buffer)
-
 from custom_tool import copy_list    
 
 def get_data_from_serial():
@@ -332,62 +314,38 @@ def get_data_from_serial():
                         if(int(datas[i+3:i+7])>4095):
                             continue
                         voltage_recv = (int(datas[i+3:i+7])-SAMPLE_BIAS)*SAMPLE_GAIN
+                        print(voltage_recv)
                         # print(voltage_recv)
                         # print(voltage_recv)
                         # 设置Index处的数据为接收到的数据
                         data_received[(data_index)] = voltage_recv
                         if(scope_state == 0):
+                            # 没有捕捉到trig level的信号，将一直等待，直到有WINDOW_SIZE个数据填充完毕
+                            # 或者一直等待直到出现trig level的信号
                             if(data_received[(data_index-1)%WINDOW_SIZE]<TRIG_LEVEL and data_received[data_index%WINDOW_SIZE]>TRIG_LEVEL):
                                 scope_state = 1
                             idle_cnt+=1
                             if(idle_cnt == WINDOW_SIZE):
                                 idle_cnt = 0
                                 display_data_buffer = copy_list(data_received,data_index+1,data_index+1)
-                                refresh_flag = 1
                         elif(scope_state == 1):
-                            # 如果已经在等待的状态
+                            # 如果已经在等待的状态，此时再等待HALF_WINDOW个数据就能显示了
                             scope_cnt += 1
                             if(scope_cnt == HALF_WINDOW):
                                 scope_cnt = 0
                                 scope_state = 0
                                 display_data_buffer = copy_list(data_received,data_index+1,data_index+1)
                                 # print(len(display_data_buffer))
-                                refresh_flag = 1
 
                         data_index+=1
-                        # if(data_index==DATA_BUFFER_SIZE):
-                        #     ui.update_plot_data(500,data_received)
+                        # 数据Buffer是一个环形的缓冲数组
                         data_index %= DATA_BUFFER_SIZE
-                        
-                        # data_hex = ['0x%x'%i for i in data_received]
-                
-                    # print(f"received {','.join(data_hex)}")
-                    # print(data_received[-1])
+
         except serial.serialutil.SerialException:
             continue
         except ValueError:
-            continue
 
-# from  scipy.signal import sawtooth
-# def get_data_from_serial():
-#     global data_received
-#     data_index = 0
-#     global mid
-#     t = np.linspace(0,20e-3,1000)
-#     data_received = ((sawtooth(2*np.pi*200*t)-0.8)+np.sin(t*50)*0.1)*2e4
-#     data_received[data_received<0] = 0
-#     data_index = 0
-#     while(True):
-#         # time.sleep(0.0001)
-#         print(data_index)
-#         if(data_received[data_index]<TRIG_LEVEL and data_received[(data_index+1)%DATA_BUFFER_SIZE]>TRIG_LEVEL):
-#             # 触发到上升沿，刷新曲线
-#             ui.update_plot_data(data_index)
-#             # 由于data_index+50的范围内数据已经显示了，所以直接跳过
-#             data_index +=50
-#         else:
-#             data_index+=1
-#         data_index = data_index%DATA_BUFFER_SIZE
+            continue
 
 
 WINDOW_SIZE  = 500
@@ -430,9 +388,6 @@ if __name__ == '__main__':
     ui.ui.COM.addItem('')
     for i in range(0,len(port_list)):
         ui.ui.COM.addItem(str(port_list[i]))
-    thread2 = threading.Thread(target=update_plot)
-    thread2.setDaemon(True)
-    thread2.start()
     thread = threading.Thread(target=get_data_from_serial)
     thread.setDaemon(True)
     thread.start()

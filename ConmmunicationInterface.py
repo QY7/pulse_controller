@@ -1,6 +1,6 @@
 from serial import Serial
 import _thread
-
+from custom_setting import BAUD_RATE
 import serial
 import time
 class CommunicationInterface:
@@ -50,7 +50,7 @@ class CommunicationInterface:
         except:
             pass
         if(self.ser is None):
-            self.ser=Serial(self.com_name,115200,timeout=0.5)
+            self.ser=Serial(self.com_name,BAUD_RATE,timeout=0.5)
         else:
             self.ser.open()
         # self.ser.open()
