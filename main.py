@@ -43,8 +43,6 @@ logging.basicConfig(level=logging.DEBUG,#控制台打印的日志级别
 pg.setConfigOptions(foreground=QColor(0,0,0),antialias=True)
 pg.setConfigOptions(background=QColor(255,255,255),antialias=True)
 
-
-
 class Controller_ui(QtWidgets.QMainWindow):
     def __init__(self,parent = None):
         super(Controller_ui,self).__init__(parent)
@@ -107,15 +105,11 @@ class Controller_ui(QtWidgets.QMainWindow):
             else:
                 break
 
-    def update_plot_data(self,index,data_arr):
-        logging.info('Update data in the graph')
-        display_data = []
-        # if(index>DATA_BUFFER_SIZE-WINDOW_SIZE/2):
-        #     return
-        # display_data = data_received[int(index-WINDOW_SIZE/2):int(index+WINDOW_SIZE/2)]
-        for i in range(index-int(WINDOW_SIZE/2),index+int(WINDOW_SIZE/2),1):
-            display_data.append(int(data_arr[(i+DATA_BUFFER_SIZE)%DATA_BUFFER_SIZE]))
-        self.data_line.setData(range(0,WINDOW_SIZE), display_data)  # Update the data.
+    def update_plot_data(self,data_arr):
+        global frame_cnt
+        # print('Update data in the graph'+str(frame_cnt))
+        frame_cnt+=1
+        self.data_line.setData(range(0,WINDOW_SIZE), data_arr)  # Update the data.
 
     def update_time(self):
         if(self.total_second is not 0):
@@ -215,7 +209,7 @@ class Controller_ui(QtWidgets.QMainWindow):
             stop_cmd = bytes()
             stop_cmd += bytes([0xEE,0xB1,0x11])
             stop_cmd += bytes([0x00,0x00])
-            stop_cmd += bytes([0x00,0x69])
+            stop_cmd += bytes([0x00,0x69]) 
             stop_cmd += bytes([0x00,0xFF,0xFC,0xFF,0xFF])
             stop_cmd += '\n'.encode()
             com.ser.write(stop_cmd)
@@ -302,12 +296,26 @@ def change_ui_to_pulse_source(name):
         ui.external.click()
     logging.debug('into change_ui_to_pulse_source')
 
+
+refresh_flag = 0
+def update_plot():
+    global display_data_buffer,refresh_flag
+    while(True):
+        time.sleep(0.1)
+        if(refresh_flag):
+            refresh_flag = 0
+            ui.update_plot_data(display_data_buffer)
+
+from custom_tool import copy_list    
+
 def get_data_from_serial():
+    global display_data_buffer,refresh_flag
     global data_received
     data_index = 0
-    wait_cnt = 0
-    wait_flag = 0
     global mid
+    scope_state = 0
+    scope_cnt = 0
+    idle_cnt = 0
     while(True):
         try:
             time.sleep(0.00001)
@@ -321,23 +329,36 @@ def get_data_from_serial():
                 for i in range(len(datas)-7):
                     if(datas[i] == 0x3a and datas[i+1]==0xbf and datas[i+2]==0x33):
                         # 接受到数据
+                        if(int(datas[i+3:i+7])>4095):
+                            continue
                         voltage_recv = (int(datas[i+3:i+7])-SAMPLE_BIAS)*SAMPLE_GAIN
-                        print(voltage_recv)
+                        # print(voltage_recv)
+                        # print(voltage_recv)
                         # 设置Index处的数据为接收到的数据
                         data_received[(data_index)] = voltage_recv
-                        if(data_received[data_index-1]<TRIG_LEVEL and data_received[(data_index)%DATA_BUFFER_SIZE]>TRIG_LEVEL):
-                            # 触发到上升沿，刷新曲线
-                            wait_flag = 1
+                        if(scope_state == 0):
+                            if(data_received[(data_index-1)%WINDOW_SIZE]<TRIG_LEVEL and data_received[data_index%WINDOW_SIZE]>TRIG_LEVEL):
+                                scope_state = 1
+                            idle_cnt+=1
+                            if(idle_cnt == WINDOW_SIZE):
+                                idle_cnt = 0
+                                display_data_buffer = copy_list(data_received,data_index+1,data_index+1)
+                                refresh_flag = 1
+                        elif(scope_state == 1):
+                            # 如果已经在等待的状态
+                            scope_cnt += 1
+                            if(scope_cnt == HALF_WINDOW):
+                                scope_cnt = 0
+                                scope_state = 0
+                                display_data_buffer = copy_list(data_received,data_index+1,data_index+1)
+                                # print(len(display_data_buffer))
+                                refresh_flag = 1
+
                         data_index+=1
                         # if(data_index==DATA_BUFFER_SIZE):
                         #     ui.update_plot_data(500,data_received)
                         data_index %= DATA_BUFFER_SIZE
-                        if(wait_flag):
-                            wait_cnt+=1
-                            if(wait_cnt == int(WINDOW_SIZE/2)):
-                                ui.update_plot_data((data_index+DATA_BUFFER_SIZE-wait_cnt)%DATA_BUFFER_SIZE,data_received)
-                                wait_cnt = 0
-                                wait_flag = 0
+                        
                         # data_hex = ['0x%x'%i for i in data_received]
                 
                     # print(f"received {','.join(data_hex)}")
@@ -369,8 +390,12 @@ def get_data_from_serial():
 #         data_index = data_index%DATA_BUFFER_SIZE
 
 
-DATA_BUFFER_SIZE =10000
 WINDOW_SIZE  = 500
+HALF_WINDOW = 250
+DATA_BUFFER_SIZE =WINDOW_SIZE
+
+display_data_buffer = [0]*WINDOW_SIZE
+
 if __name__ == '__main__':
     local_index = 0
     local_pulse_source = 0
@@ -405,8 +430,12 @@ if __name__ == '__main__':
     ui.ui.COM.addItem('')
     for i in range(0,len(port_list)):
         ui.ui.COM.addItem(str(port_list[i]))
+    thread2 = threading.Thread(target=update_plot)
+    thread2.setDaemon(True)
+    thread2.start()
     thread = threading.Thread(target=get_data_from_serial)
     thread.setDaemon(True)
     thread.start()
+
     
     sys.exit(app.exec_())

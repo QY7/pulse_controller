@@ -20,7 +20,7 @@ class MyLineEdit(QtWidgets.QLineEdit):
         super().focusOutEvent(event)
         self.setGraphicsEffect(None)
         try:
-            num_modified = int(self.text())
+            num_modified = float(self.text())
             # com.local_configuration[self.objectName()] = num_modified
             com.send_data(self.objectName(), num_modified)
              
