@@ -58,7 +58,7 @@ class Controller_ui(QtWidgets.QMainWindow):
         # 创建定时器，使曲线图动态更新
         self.timer = QTimer()
         # 每100ms刷新一次
-        self.timer.start(10)
+        self.timer.start(20)
         self.timer.timeout.connect(self.Updatedata)
 
         self.setDisabled(True)
@@ -104,7 +104,7 @@ class Controller_ui(QtWidgets.QMainWindow):
         self.LineFigure.draw()  # 重新画图
 
     def update_time(self):
-        if(self.total_second is not 0):
+        if(self.total_second != 0):
             self.total_second-=1
             second_left = int((self.total_second)%60)
             minute_left = int((self.total_second-second_left)/60)
