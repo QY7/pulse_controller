@@ -300,7 +300,7 @@ def get_data_from_serial():
     idle_cnt = 0
     while(True):
         try:
-            time.sleep(0.00001)
+            time.sleep(0.0001)
             if(not com.ser):
                 continue
             data_count = com.ser.inWaiting()
@@ -314,7 +314,7 @@ def get_data_from_serial():
                         if(int(datas[i+3:i+7])>4095):
                             continue
                         voltage_recv = (int(datas[i+3:i+7])-SAMPLE_BIAS)*SAMPLE_GAIN
-                        print(voltage_recv)
+                        # print(voltage_recv)
                         # print(voltage_recv)
                         # print(voltage_recv)
                         # 设置Index处的数据为接收到的数据
@@ -322,12 +322,14 @@ def get_data_from_serial():
                         if(scope_state == 0):
                             # 没有捕捉到trig level的信号，将一直等待，直到有WINDOW_SIZE个数据填充完毕
                             # 或者一直等待直到出现trig level的信号
-                            if(data_received[(data_index-1)%WINDOW_SIZE]<TRIG_LEVEL and data_received[data_index%WINDOW_SIZE]>TRIG_LEVEL):
+                            if(data_received[(data_index-1)%WINDOW_SIZE]<=TRIG_LEVEL and data_received[data_index%WINDOW_SIZE]>=TRIG_LEVEL):
                                 scope_state = 1
-                            idle_cnt+=1
-                            if(idle_cnt == WINDOW_SIZE):
                                 idle_cnt = 0
-                                display_data_buffer = copy_list(data_received,data_index+1,data_index+1)
+                            else:
+                                idle_cnt+=1
+                                if(idle_cnt == WINDOW_SIZE*10):
+                                    idle_cnt = 0
+                                    display_data_buffer = copy_list(data_received,data_index+1,data_index+1)
                         elif(scope_state == 1):
                             # 如果已经在等待的状态，此时再等待HALF_WINDOW个数据就能显示了
                             scope_cnt += 1
@@ -348,9 +350,7 @@ def get_data_from_serial():
             continue
 
 
-WINDOW_SIZE  = 500
-HALF_WINDOW = 250
-DATA_BUFFER_SIZE =WINDOW_SIZE
+
 
 display_data_buffer = [0]*WINDOW_SIZE
 
