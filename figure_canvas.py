@@ -29,4 +29,3 @@ class Figure_Canvas(FigureCanvas):
         self.ax.add_line(self.line)
         self.line.set_linewidth(2)
         self.line.set_color('r')
-        plt.tight_layout()
