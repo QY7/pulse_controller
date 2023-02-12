@@ -330,7 +330,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.sample_max_voltage.sizePolicy().hasHeightForWidth())
         self.sample_max_voltage.setSizePolicy(sizePolicy)
-        self.sample_max_voltage.setMaximumSize(QtCore.QSize(100, 16777215))
+        self.sample_max_voltage.setMaximumSize(QtCore.QSize(200, 16777215))
         font = QtGui.QFont()
         font.setFamily("Microsoft YaHei")
         font.setPointSize(20)
