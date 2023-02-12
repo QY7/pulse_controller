@@ -3,6 +3,7 @@ from tracemalloc import stop
 import PyQt5
 from PyQt5.QtGui import QColor, QPalette, qRed
 from PyQt5.QtWidgets import QMainWindow, QApplication, QGridLayout
+from PyQt5.QtCore import Qt
 from sqlalchemy import except_all
 from ui import Ui_MainWindow
 from ui_sub import Ui_Form
@@ -60,7 +61,7 @@ class Controller_ui(QtWidgets.QMainWindow):
         # 每100ms刷新一次
         self.timer.start(20)
         self.timer.timeout.connect(self.Updatedata)
-
+        
         self.setDisabled(True)
         self.show()
         # QMessageBox.question(self,"输入密码")\
@@ -100,7 +101,8 @@ class Controller_ui(QtWidgets.QMainWindow):
         self.LineFigure.line.set_ydata(np.array(display_data_buffer))  # Update the data.
         # self.LineFigure.line.set_ydata(z_data)  # 更新数据
         # self.LineFigure.line2.set_ydata(h_data)
-
+        max_tmp= np.max(np.abs(np.array(display_data_buffer)))
+        ui.ui.sample_max_voltage.setText(str(max_tmp/1000))
         self.LineFigure.draw()  # 重新画图
 
     def update_time(self):
@@ -337,6 +339,7 @@ def get_data_from_serial():
                                 scope_cnt = 0
                                 scope_state = 0
                                 display_data_buffer = copy_list(data_received,data_index+1,data_index+1)
+                                
                                 # print(len(display_data_buffer))
 
                         data_index+=1
@@ -364,7 +367,7 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Controller_ui()
-
+    ui.setFixedSize(ui.size())
     # 初始化子菜单
     sub_menu = SubMenu()
     port_list = list(serial.tools.list_ports.comports())
