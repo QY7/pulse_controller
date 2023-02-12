@@ -11,7 +11,7 @@ class Figure_Canvas(FigureCanvas):
     """
     创建画板类
     """
-    def __init__(self, width=3, height=5):
+    def __init__(self, width=3, height=8):
         self.fig = Figure(figsize=(width, height), dpi=100)
         super(Figure_Canvas, self).__init__(self.fig)
         self.ax = self.fig.add_subplot(111)  # 111表示1行1列，第一张曲线图
