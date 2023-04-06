@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'E:\Documents\workspace\Qtdesigner\pulse_generator_control_old.ui'
+# Form implementation generated from reading ui file 'D:\Documents\workspace\Qtdesigner\pulse_generator_control_0406.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1900, 1069)
+        MainWindow.resize(1892, 1046)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -352,6 +352,18 @@ class Ui_MainWindow(object):
         self.verticalLayout.addLayout(self.horizontalLayout_3)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        self.stop_btn_3 = QtWidgets.QPushButton(self.frame)
+        self.stop_btn_3.setMinimumSize(QtCore.QSize(100, 80))
+        font = QtGui.QFont()
+        font.setFamily("微软雅黑")
+        font.setPointSize(16)
+        font.setBold(True)
+        font.setWeight(75)
+        self.stop_btn_3.setFont(font)
+        self.stop_btn_3.setObjectName("stop_btn_3")
+        self.horizontalLayout_2.addWidget(self.stop_btn_3)
+        spacerItem4 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_2.addItem(spacerItem4)
         self.start_btn = QtWidgets.QPushButton(self.frame)
         self.start_btn.setMinimumSize(QtCore.QSize(100, 80))
         font = QtGui.QFont()
@@ -362,8 +374,8 @@ class Ui_MainWindow(object):
         self.start_btn.setFont(font)
         self.start_btn.setObjectName("start_btn")
         self.horizontalLayout_2.addWidget(self.start_btn)
-        spacerItem4 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_2.addItem(spacerItem4)
+        spacerItem5 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_2.addItem(spacerItem5)
         self.stop_btn = QtWidgets.QPushButton(self.frame)
         self.stop_btn.setMinimumSize(QtCore.QSize(100, 80))
         font = QtGui.QFont()
@@ -374,8 +386,8 @@ class Ui_MainWindow(object):
         self.stop_btn.setFont(font)
         self.stop_btn.setObjectName("stop_btn")
         self.horizontalLayout_2.addWidget(self.stop_btn)
-        spacerItem5 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_2.addItem(spacerItem5)
+        spacerItem6 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_2.addItem(spacerItem6)
         self.stop_btn_2 = QtWidgets.QPushButton(self.frame)
         self.stop_btn_2.setMinimumSize(QtCore.QSize(100, 80))
         font = QtGui.QFont()
@@ -389,8 +401,8 @@ class Ui_MainWindow(object):
         self.verticalLayout.addLayout(self.horizontalLayout_2)
         self.horizontalLayout_8 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_8.setObjectName("horizontalLayout_8")
-        spacerItem6 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_8.addItem(spacerItem6)
+        spacerItem7 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_8.addItem(spacerItem7)
         self.internal = QtWidgets.QRadioButton(self.frame)
         font = QtGui.QFont()
         font.setFamily("Microsoft YaHei")
@@ -412,8 +424,8 @@ class Ui_MainWindow(object):
         self.external.setAutoExclusive(False)
         self.external.setObjectName("external")
         self.horizontalLayout_8.addWidget(self.external)
-        spacerItem7 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_8.addItem(spacerItem7)
+        spacerItem8 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_8.addItem(spacerItem8)
         self.verticalLayout.addLayout(self.horizontalLayout_8)
         self.horizontalLayout.addWidget(self.frame)
         self.frame_2 = QtWidgets.QFrame(self.centralwidget)
@@ -446,6 +458,7 @@ class Ui_MainWindow(object):
         self.pushButton_3.clicked.connect(MainWindow.connect_serial)
         self.pushButton_2.clicked.connect(MainWindow.disconnect_serial)
         self.COM.textActivated['QString'].connect(MainWindow.change_com)
+        self.stop_btn_3.clicked.connect(MainWindow.single_trigger)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -476,6 +489,7 @@ class Ui_MainWindow(object):
         self.label_23.setText(_translate("MainWindow", "最大值"))
         self.sample_max_voltage.setText(_translate("MainWindow", "5"))
         self.label_24.setText(_translate("MainWindow", "千伏"))
+        self.stop_btn_3.setText(_translate("MainWindow", "单次捕捉"))
         self.start_btn.setText(_translate("MainWindow", "开始"))
         self.stop_btn.setText(_translate("MainWindow", "停止"))
         self.stop_btn_2.setText(_translate("MainWindow", "参数修改"))

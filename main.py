@@ -64,6 +64,8 @@ class Controller_ui(QtWidgets.QMainWindow):
         
         self.setDisabled(True)
         self.show()
+        self.single_mode = 0
+        self.freeze_flag = 0
         # QMessageBox.question(self,"输入密码")\
         if(not debug_mode):
             while(True):
@@ -96,14 +98,23 @@ class Controller_ui(QtWidgets.QMainWindow):
         x_data = np.arange(0, WINDOW_SIZE, 1)
         self.LineFigure.add_line(x_data, np.array(display_data_buffer))
 
+    def single_trigger(self):
+        self.freeze_flag = 0
+        self.single_mode = 1
+
     def Updatedata(self):
         global display_data_buffer
-        self.LineFigure.line.set_ydata(np.array(display_data_buffer))  # Update the data.
-        # self.LineFigure.line.set_ydata(z_data)  # 更新数据
-        # self.LineFigure.line2.set_ydata(h_data)
-        max_tmp= np.max(np.abs(np.array(display_data_buffer)))
-        ui.ui.sample_max_voltage.setText(str(max_tmp/1000))
-        self.LineFigure.draw()  # 重新画图
+        if(self.freeze_flag == 0):
+            self.LineFigure.line.set_ydata(np.array(display_data_buffer))  # Update the data.
+            # self.LineFigure.line.set_ydata(z_data)  # 更新数据
+            # self.LineFigure.line2.set_ydata(h_data)
+            max_tmp= np.max(np.abs(np.array(display_data_buffer)))
+            ui.ui.sample_max_voltage.setText(str(max_tmp/1000))
+            self.LineFigure.draw()  # 重新画图
+        if(self.single_mode):
+            self.single_mode = 0
+            self.freeze_flag = 1
+        
 
     def update_time(self):
         if(self.total_second != 0):
@@ -316,8 +327,7 @@ def get_data_from_serial():
                         if(int(datas[i+3:i+7])>4095):
                             continue
                         voltage_recv = (int(datas[i+3:i+7])-SAMPLE_BIAS)*SAMPLE_GAIN
-                        # print(voltage_recv)
-                        # print(voltage_recv)
+                        print(voltage_recv)
                         # print(voltage_recv)
                         # 设置Index处的数据为接收到的数据
                         data_received[(data_index)] = voltage_recv
