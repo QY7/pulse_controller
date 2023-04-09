@@ -109,7 +109,7 @@ class Controller_ui(QtWidgets.QMainWindow):
             # self.LineFigure.line.set_ydata(z_data)  # 更新数据
             # self.LineFigure.line2.set_ydata(h_data)
             max_tmp= np.max(np.abs(np.array(display_data_buffer)))
-            ui.ui.sample_max_voltage.setText(str(max_tmp/1000))
+            ui.ui.sample_max_voltage.setText(f"{max_tmp/1000:.3f}")
             self.LineFigure.draw()  # 重新画图
         if(self.single_mode):
             self.single_mode = 0
