@@ -341,7 +341,7 @@ def get_data_from_serial():
                                 idle_cnt+=1
                                 if(idle_cnt == WINDOW_SIZE*10):
                                     idle_cnt = 0
-                                    display_data_buffer = copy_list(data_received,data_index+1,data_index+1)
+                                    # display_data_buffer = copy_list(data_received,data_index+1,data_index+1)
                         elif(scope_state == 1):
                             # 如果已经在等待的状态，此时再等待HALF_WINDOW个数据就能显示了
                             scope_cnt += 1
